@@ -5,11 +5,12 @@
 #include <QThread>
 // #include "views/SettingView.h"
 
-class CameraView;
+class VideoWidget;
 class WristbandServer;
 class EEGDataReceiver;
 class SettingView;
 class LogView;
+class VideoFromCamera;
 
 class MainWindow : public QMainWindow {
 public:
@@ -22,7 +23,8 @@ private:
     SettingView* ui_settingView;
     LogView* ui_eegView;
     LogView* ui_bandView;
-    CameraView* ui_cameraView;
+    // CameraView* ui_cameraView;
+    VideoWidget *ui_videowidget;
 
     EEGDataReceiver* m_eegReceiver;
     QThread m_eegThread;

@@ -10,8 +10,11 @@ MyPage {
     titleText: Qt.application.displayName
     rightMargin: 5
 
+    //提供可滚动的区域，支持手指滑动（或鼠标拖动）来查看超出可见区域的内容。
+    //
     Flickable {
         clip: true
+        //// 默认：Flickable.AutoFlickDirection（双向滚动）
         anchors.fill: parent
         rightMargin: 15
         contentHeight: column.height

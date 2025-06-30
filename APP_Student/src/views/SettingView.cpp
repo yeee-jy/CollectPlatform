@@ -245,6 +245,7 @@ void SettingView::initConnection() {
 
     connect(ui_eegConnectBtn, &QPushButton::clicked, this, &SettingView::onEEGConnectBtnClicked);
     connect(ui_bandListenBtn, &QPushButton::clicked, this, &SettingView::onBandListenBtnClicked);
+    //打开摄像头
     connect(ui_cameraOpenBtn, &QPushButton::clicked, this, &SettingView::onCameraOpenBtnClicked);
 
     connect(m_cameraManager, &CameraSettingManager::deviceChanged, this, &SettingView::cameraDeviceChanged);

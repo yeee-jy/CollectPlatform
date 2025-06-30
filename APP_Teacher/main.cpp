@@ -8,17 +8,25 @@
 #include <QJsonDocument>
 #include <qqmlcontext.h>
 #include "WristbandData.h"
+#include "src/rtmp/PullWork.h"
+#include "src/rtmp/VideoPaintedItem.h"
+#include <QtQml/QQmlEngine>
 
+int main(int argc, char* argv[])
+{
+    //使用cpu渲染
+    qmlRegisterType<VideoPaintedItem>("VideoComponents", 1, 0, "VideoPaintedItem");
 
-int main(int argc, char* argv[]) {
+    //使用GPU加速
+    // qmlRegisterType<VideoFboItem>("VideoComponents", 1, 0, "VideoFboItem");
     // QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
     QQuickWindow::setDefaultAlphaBuffer(true);
 
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon(":/res/icons/app_logo.ico"));
     app.setApplicationDisplayName(QObject::tr("多模态数据采集与学习者状态实时感知平台"));
-    app.setApplicationVersion("1.0.0");
-    app.setOrganizationName(QObject::tr("教育大数据应用技术国家工程研究中心 杨鑫"));
+    app.setApplicationVersion("1.0.0"); //版本号
+    app.setOrganizationName("perlab");//设置组织名称和域名
     app.setOrganizationDomain("nerc-ebd.ccnu.edu.cn");
 
     QQmlApplicationEngine engine;
@@ -33,9 +41,12 @@ int main(int argc, char* argv[]) {
     );
     // engine.loadFromModule("qml", "App");
 
-    const QString qmlPath = "D:/Workspace/CollectPlatform/APP_Teacher/qml/";
-    const QUrl mainQmlUrl = QUrl::fromLocalFile(qmlPath + "App.qml");
+    //创建拉流的类，注入到调用界面
+    PullWork pull_work;
+    engine.rootContext()->setContextProperty("pull_work",&pull_work);
 
+    const QString qmlPath = "D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/";
+    const QUrl mainQmlUrl = QUrl::fromLocalFile(qmlPath + "App.qml");
     engine.load(mainQmlUrl);
 
     // WristBandData data {

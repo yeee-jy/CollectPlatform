@@ -4,8 +4,25 @@
   "builtin-baseline": "275a29dcdb864aa9ce57042eadf95f4a28482280",
   "dependencies": [
     {
+      "name": "ffmpeg",
+      "version>=": "7.1.1#2",
+      "features": [ "gpl","x264"]
+    },
+    {
+      "name": "x264",
+      "version>=": "0.164.3108#2"
+    },
+    {
       "name": "msgpack",
       "version>=": "7.0.0"
+    },
+    {
+      "name": "librtmp",
+      "version>=": "2024-03-01#1"
+    },
+    {
+      "name": "winsock2",
+      "version>=": "0.0#5"
     }
   ]
 }

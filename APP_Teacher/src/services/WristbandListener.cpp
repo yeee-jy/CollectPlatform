@@ -16,6 +16,7 @@ WristbandListener::~WristbandListener() {
 }
 
 bool WristbandListener::startServer(const quint16 port) {
+    //直接调用QTcpServer的listen监听port端口
     if (!listen(QHostAddress::Any, port)) {
         return false;
     }

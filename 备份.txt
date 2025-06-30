@@ -1,0 +1,87 @@
+template<>
+struct convert<EEGSensorData> {
+    msgpack::object const& operator()(msgpack::object const& o, EEGSensorData& v) const {
+        if (o.type != msgpack::type::ARRAY) throw msgpack::type_error();
+        if (o.via.array.size != 4) throw msgpack::type_error();
+
+        v.timestamp = o.via.array.ptr[0].as<qint64>();
+        v.adcStatus = o.via.array.ptr[1].as<quint64>();
+
+        // 二进制块解析 channelData
+        const auto& bin = o.via.array.ptr[2].via.bin;
+        if (bin.size != sizeof(float) * 24) throw msgpack::type_error();
+        std::memcpy(v.channelData.data(), bin.ptr, bin.size);
+
+        v.trigger = o.via.array.ptr[3].as<float>();
+        return o;
+    }
+};
+
+template<>
+struct pack<EEGSensorData> {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, EEGSensorData const& v) const {
+        o.pack_array(4);
+        o.pack(v.timestamp);
+        o.pack(v.adcStatus);
+        o.pack_bin(sizeof(float) * 24);
+        o.pack_bin_body(reinterpret_cast<const char*>(v.channelData.data()), sizeof(float) * 24);
+        o.pack(v.trigger);
+        return o;
+    }
+};
+
+template<>
+struct object_with_zone<EEGSensorData> {
+    void operator()(msgpack::object::with_zone& o, EEGSensorData const& v) const {
+        o.type = msgpack::type::ARRAY;
+        o.via.array.size = 4;
+        o.via.array.ptr = static_cast<msgpack::object*>(
+            o.zone.allocate_align(sizeof(msgpack::object) * 4, MSGPACK_ZONE_ALIGNOF(msgpack::object)));
+
+        o.via.array.ptr[0] = msgpack::object(v.timestamp, o.zone);
+        o.via.array.ptr[1] = msgpack::object(v.adcStatus, o.zone);
+
+        // channelData 作为二进制对象
+        o.via.array.ptr[2].type = msgpack::type::BIN;
+        o.via.array.ptr[2].via.bin.ptr = static_cast<char*>(
+            o.zone.allocate_align(sizeof(float) * 24, MSGPACK_ZONE_ALIGNOF(float)));
+        o.via.array.ptr[2].via.bin.size = sizeof(float) * 24;
+        std::memcpy(
+            const_cast<char*>(o.via.array.ptr[2].via.bin.ptr),  // 安全地移除const
+            v.channelData.data(),
+            sizeof(float) * 24
+        );
+
+        o.via.array.ptr[3] = msgpack::object(v.trigger, o.zone);
+    }
+};
+
+if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(DEBUG_SUFFIX)
+    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(DEBUG_SUFFIX "d")
+    endif()
+    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
+    if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
+        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        if(NOT EXISTS "${QT_INSTALL_PATH}/bin")
+            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        endif()
+    endif()
+    if(EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    endif()
+    foreach(QT_LIB Core )
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach(QT_LIB)
+endif()

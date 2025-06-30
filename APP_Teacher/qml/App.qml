@@ -51,25 +51,31 @@ DelWindow {
                     key: "home",
                     label: qsTr("主页"),
                     iconSource: DelIcon.HomeOutlined,
-                    source: "file:/D:/Workspace/CollectPlatform/APP_Teacher/qml/Pages/HomePage.qml"
+                    source: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/HomePage.qml"
                 },
                 {
                     key: "realtime",
                     label: qsTr("实时采集"),
                     iconSource: DelIcon.FundProjectionScreenOutlined,
-                    source: "file:/D:/Workspace/CollectPlatform/APP_Teacher/qml/Pages/RealTimePage.qml"
+                    source: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/RealTimePage.qml"
+                },
+                {
+                    key: "videoreadtime",
+                    label: qsTr("实时视频采集"),
+                    iconSource: DelIcon.PlayCircleOutlined ,
+                    source: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/videoreadtime.qml"
                 },
                 {
                     key: "offline",
                     label: qsTr("离线分析"),
                     iconSource: DelIcon.DotChartOutlined,
-                    source: "file:/D:/Workspace/CollectPlatform/APP_Teacher/qml/Pages/OfflinePage.qml"
+                    source: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/OfflinePage.qml"
                 },
                 {
                     key: "storage",
                     label: qsTr("存储库"),
                     iconSource: DelIcon.CloudOutlined,
-                    source: "file:/D:/Workspace/CollectPlatform/APP_Teacher/qml/Pages/StoragePage.qml"
+                    source: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/StoragePage.qml"
                 }
             ]
 
@@ -92,7 +98,7 @@ DelWindow {
             anchors.bottom: statusBar.top
             anchors.bottomMargin: 5
 
-            property string pageSource: "file:/D:/Workspace/CollectPlatform/APP_Teacher/qml/Pages/SettingPage.qml"
+            property string pageSource: "file:/D:/Workspace/CollectPlatform/Client/APP_Teacher/qml/Pages/SettingPage.qml"
 
             onClicked: {
                 app.curSource = pageSource
@@ -182,7 +188,7 @@ DelWindow {
     onCurSourceChanged: containerLoader.loadSource(curSource)
 
     QmlWatcher {
-        dirPath: "D:/Workspace/CollectPlatform/APP_Teacher/qml"
+        dirPath: "D:/Workspace/CollectPlatform/Client/APP_Teacher/qml"
 
         onFileChanged: (filePath) => {
             if (app.autoReload && filePath === app.curSource.substring(6)) {
