@@ -15,16 +15,20 @@ find_package(Qt6 COMPONENTS Core WebSockets Quick Qml Graphs REQUIRED)
 find_package(HuskarUI REQUIRED)
 qt_standard_project_setup(REQUIRES 6.5)
 
-# ===== FFmpeg =====
-# ===== FFmpeg（vcpkg 模块模式）=====
-find_package(FFMPEG REQUIRED)
-set(FFMPEG_LIBS ${FFMPEG_LIBRARIES})
-list(APPEND FFMPEG_LIBS swscale swresample avdevice)
-
-# ===== librtmp（通过 pkg-config）=====
+# ===== FFmpeg / librtmp =====
+# 不再使用 find_package(FFMPEG REQUIRED)，避免 Qt6 FindFFmpeg.cmake 与 vcpkg 的 ffmpeg 冲突
 find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+    libavcodec
+    libavformat
+    libavutil
+    libswscale
+    libswresample
+    libavdevice
+)
+
 pkg_check_modules(librtmp REQUIRED IMPORTED_TARGET librtmp)
-set(LIBRTMP_LIBS PkgConfig::librtmp)
 # ===== END =====
 
 set(CPP_FILES
@@ -36,10 +40,6 @@ qt_add_resources(RESOURCES resources/resources.qrc)
 qt_add_executable(${PROJECT_NAME}
     ${CPP_FILES} ${RESOURCES}
 )
-target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
-if (FFMPEG_LIBRARY_DIRS)
-    target_link_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_LIBRARY_DIRS})
-endif()
 
 qt_policy(SET QTP0004 NEW)
 
@@ -111,7 +111,7 @@ set_source_files_properties(AppController.qml
 
 qt_add_qml_module(${PROJECT_NAME}
     URI MuApp
-        VERSION 1.0
+    VERSION 1.0
     QML_FILES ${QML_FILES}
     SOURCES ${QML_CPP_FILES}
 )
@@ -147,15 +147,23 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE Qt6::Core Qt6::WebSockets Qt6::Quick Qt6::Qml Qt6::Graphs HuskarUI::Basic PlatformCommon
-    ${FFMPEG_LIBS} ${LIBRTMP_LIBS}
+    PRIVATE
+    Qt6::Core
+    Qt6::WebSockets
+    Qt6::Quick
+    Qt6::Qml
+    Qt6::Graphs
+    HuskarUI::Basic
+    PlatformCommon
+    PkgConfig::FFMPEG
+    PkgConfig::librtmp
 )
 
 if (WIN32)
     add_custom_command(
         TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${HuskarUI_QML_IMPORT_PATH} ${APP_PACKAGE_DIR}/qml
+        ${HuskarUI_QML_IMPORT_PATH} ${APP_PACKAGE_DIR}/qml
     )
 
     find_program(QT_DEPLOY_QT NAMES windeployqt)
@@ -195,7 +203,7 @@ elseif(APPLE)
     add_custom_command(
         TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${HuskarUI_QML_IMPORT_PATH} ${APP_PACKAGE_DIR}/${TARGET_OUTPUT_NAME}.app/Contents/Resources/qml
+        ${HuskarUI_QML_IMPORT_PATH} ${APP_PACKAGE_DIR}/${TARGET_OUTPUT_NAME}.app/Contents/Resources/qml
     )
 
     find_program(QT_DEPLOY_QT NAMES macdeployqt)

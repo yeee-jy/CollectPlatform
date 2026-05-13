@@ -16,9 +16,16 @@ qt_standard_project_setup(REQUIRES 6.5 I18N_TRANSLATED_LANGUAGES zh_CN)
 
 # ===== FFmpeg =====
 # ===== FFmpeg（vcpkg 模块模式）=====
-find_package(FFMPEG REQUIRED)
-set(FFMPEG_LIBS ${FFMPEG_LIBRARIES})
-list(APPEND FFMPEG_LIBS swscale avdevice)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
+    libavcodec
+    libavformat
+    libavutil
+    libswscale
+    libswresample
+    libavdevice
+)
 
 # ===== librtmp（通过 pkg-config）=====
 find_package(PkgConfig REQUIRED)
@@ -105,10 +112,6 @@ qt_add_executable(${PROJECT_NAME}
     ${H_FILES} ${CPP_FILES} ${RESOURCES}
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
-if (FFMPEG_LIBRARY_DIRS)
-    target_link_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_LIBRARY_DIRS})
-endif()
 
 if (Qt6_VERSION VERSION_GREATER_EQUAL "6.9.0")
     qt_add_translations(${PROJECT_NAME}
@@ -146,7 +149,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE Qt6::Core Qt6::Widgets Qt6::Svg Qt6::Network Qt6::Mqtt Qt6::Multimedia PlatformCommon
-    ${FFMPEG_LIBS}
+    PkgConfig::FFMPEG
     ${LIBRTMP_LIBS}
 )
 
